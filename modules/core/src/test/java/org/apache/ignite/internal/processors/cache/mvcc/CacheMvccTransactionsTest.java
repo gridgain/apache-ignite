@@ -1032,23 +1032,23 @@ public class CacheMvccTransactionsTest extends CacheMvccAbstractTest {
 
                 Map<Integer, Integer> vals;
 
-                if (inTx) {
-                    try (Transaction tx = client.transactions().txStart(OPTIMISTIC, SERIALIZABLE)) {
+                    if (inTx) {
+                        try (Transaction tx = client.transactions().txStart(OPTIMISTIC, SERIALIZABLE)) {
+                            vals = checkAndGetAll(false, cache, F.asSet(key1, key2), SCAN, GET);
+
+                            tx.rollback();
+                        }
+                    }
+                    else
                         vals = checkAndGetAll(false, cache, F.asSet(key1, key2), SCAN, GET);
 
-                        tx.rollback();
+                    if (putOnStart) {
+                        assertEquals(2, vals.size());
+                        assertEquals(0, (Object)vals.get(key1));
+                        assertEquals(0, (Object)vals.get(key2));
                     }
-                }
-                else
-                    vals = checkAndGetAll(false, cache, F.asSet(key1, key2), SCAN, GET);
-
-                if (putOnStart) {
-                    assertEquals(2, vals.size());
-                    assertEquals(0, (Object)vals.get(key1));
-                    assertEquals(0, (Object)vals.get(key2));
-                }
-                else
-                    assertEquals(0, vals.size());
+                    else
+                        assertEquals(0, vals.size());
 
                 return null;
             }
