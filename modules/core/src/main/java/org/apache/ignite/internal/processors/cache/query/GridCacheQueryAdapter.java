@@ -554,9 +554,7 @@ public class GridCacheQueryAdapter<T> implements CacheQuery<T> {
 
                 mvccSnapshot = mvccTracker.snapshot();
 
-                //TODO: do we really need this?
-                if(tx !=null)
-                    tx.mvccSnapshot(mvccSnapshot);
+                assert mvccSnapshot != null;
             }
         }
 
