@@ -19,6 +19,7 @@ package org.apache.ignite.internal.processors.query.calcite.exec;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.Future;
 
 import org.apache.ignite.failure.FailureContext;
 import org.apache.ignite.failure.FailureType;
@@ -82,6 +83,11 @@ public class QueryTaskExecutorImpl extends AbstractService implements QueryTaskE
             },
             hash(qryId, fragmentId)
         );
+    }
+
+    /** {@inheritDoc} */
+    @Override public Future<?> submit(UUID qryId, long fragmentId, Runnable qryTask) {
+        return stripedThreadPoolExecutor.submit(qryTask, hash(qryId, fragmentId));
     }
 
     /** {@inheritDoc} */

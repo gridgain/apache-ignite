@@ -25,7 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.apache.ignite.testframework.GridTestUtils.waitForCondition;
 import com.google.common.collect.ImmutableMap;
+import org.apache.calcite.rel.core.Project;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.CacheMode;
@@ -36,11 +38,20 @@ import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.cache.query.annotations.QuerySqlField;
 import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.IgniteEx;
+import org.apache.ignite.internal.IgniteInterruptedCheckedException;
 import org.apache.ignite.internal.processors.query.QueryEngine;
+import org.apache.ignite.internal.processors.query.calcite.exec.MailboxRegistryImpl;
+import org.apache.ignite.internal.processors.query.calcite.exec.rel.Inbox;
+import org.apache.ignite.internal.processors.query.calcite.exec.rel.Outbox;
 import org.apache.ignite.internal.processors.query.calcite.util.Commons;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.G;
+import org.apache.ignite.internal.util.typedef.internal.U;
+import org.apache.ignite.testframework.GridTestUtils;
+import org.apache.ignite.testframework.ListeningTestLogger;
+import org.apache.ignite.testframework.LogListener;
 import org.apache.ignite.testframework.junits.WithSystemProperty;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.junit.Test;
@@ -52,6 +63,23 @@ import org.junit.Test;
 public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
     /** */
     private static IgniteEx client;
+
+    private ListeningTestLogger listeningLog = new ListeningTestLogger(log);
+    static LogListener lsnr = LogListener.matches("Execution is cancelled").build();
+    static LogListener lsnr1 = LogListener.matches(s -> s.contains("NullPointer") || s.contains("AssertionError")).build();
+    boolean reg;
+
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        if (!reg) {
+            listeningLog.registerListener(lsnr);
+            listeningLog.registerListener(lsnr1);
+            reg = true;
+            return super.getConfiguration(igniteInstanceName)
+                .setGridLogger(listeningLog);
+        }
+        else
+            return super.getConfiguration(igniteInstanceName);
+    }
 
     /** {@inheritDoc} */
     @Override protected void beforeTestsStarted() throws Exception {
@@ -131,9 +159,11 @@ public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
             .setCacheMode(CacheMode.REPLICATED)
         );
 
-        Map<Integer, RISK> mRisk = new HashMap<>(65000);
+        int numRiskRows = 65_000;
 
-        for (int i = 0; i < 65000; i++)
+        Map<Integer, RISK> mRisk = new HashMap<>(numRiskRows);
+
+        for (int i = 0; i < numRiskRows; i++)
             mRisk.put(i, new RISK(i));
 
         RISK.putAll(mRisk);
@@ -181,6 +211,28 @@ public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
                 assertEquals(1, res.get(0).size());
                 assertEquals(40L, res.get(0).get(0));
             }
+        }
+
+        assertFalse(lsnr.check());
+        assertFalse(lsnr1.check());
+    }
+
+    /**
+     * Checks all grids execution contexts are closed or registered (Out|In)boxes are present.
+     */
+    private void checkContextCancelled() throws IgniteInterruptedCheckedException {
+        for (Ignite instance : G.allGrids()) {
+            QueryEngine engineCli = Commons.lookupComponent(((IgniteEx)instance).context(), QueryEngine.class);
+
+            MailboxRegistryImpl mailReg = GridTestUtils.getFieldValue(engineCli, CalciteQueryProcessor.class, "mailboxRegistry");
+
+            Map<Object, Inbox<?>> remotes = GridTestUtils.getFieldValue(mailReg, MailboxRegistryImpl.class, "remotes");
+
+            Map<Object, Outbox<?>> locals = GridTestUtils.getFieldValue(mailReg, MailboxRegistryImpl.class, "locals");
+
+            waitForCondition(() -> remotes.isEmpty() || remotes.values().stream().allMatch(s -> s.context().isCancelled()), 5_000);
+
+            waitForCondition(() -> locals.isEmpty() || locals.values().stream().allMatch(s -> s.context().isCancelled()), 5_000);
         }
     }
 
@@ -840,8 +892,8 @@ public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
     }
 
     /** */
-    private List<List<?>> sql(String sql) {
-        QueryEngine engineSrv = Commons.lookupComponent(grid(1).context(), QueryEngine.class);
+    private List<List<?>> sql(String sql) throws IgniteInterruptedCheckedException {
+        QueryEngine engineSrv = Commons.lookupComponent(grid(0).context(), QueryEngine.class);
 
         assertTrue(client.configuration().isClientMode());
 
@@ -857,6 +909,8 @@ public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
             allSrv = srvCursor.getAll();
 
             assertEquals(allSrv.size(), cliCursor.getAll().size());
+
+            checkContextCancelled();
         }
 
         return allSrv;

@@ -125,6 +125,7 @@ public class ScanNode<Row> extends AbstractNode<Row> implements SingleNode<Row> 
             it = null;
 
             requested = 0;
+
             downstream().end();
         }
     }

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -238,6 +239,18 @@ public class ExecutionContext<Row> implements DataContext {
                 onError.accept(e);
 
                 throw new IgniteException("Unexpected exception", e);
+            }
+        });
+    }
+
+    /** */
+    public Future<?> submit(RunnableX task, Consumer<Throwable> onError) {
+        return executor.submit(qryId, fragmentId(), () -> {
+            try {
+                task.run();
+            }
+            catch (Throwable t) {
+                onError.accept(t);
             }
         });
     }

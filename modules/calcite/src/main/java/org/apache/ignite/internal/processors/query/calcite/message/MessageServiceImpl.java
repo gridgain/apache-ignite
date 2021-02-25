@@ -213,6 +213,10 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         assert old == null : old;
     }
 
+    @Override public UUID localNode() {
+        return localNodeId;
+    }
+
     /** {@inheritDoc} */
     @Override public boolean alive(UUID nodeId) {
         try {

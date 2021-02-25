@@ -137,6 +137,10 @@ public final class PlanningContext implements Context {
         return originatingNodeId == null ? locNodeId : originatingNodeId;
     }
 
+    public UUID originatingNodeId1() {
+        return locNodeId;
+    }
+
     /**
      * @return Framework config.
      */

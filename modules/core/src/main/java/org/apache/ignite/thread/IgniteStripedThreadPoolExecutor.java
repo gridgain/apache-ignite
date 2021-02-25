@@ -89,6 +89,11 @@ public class IgniteStripedThreadPoolExecutor implements ExecutorService {
         execs[threadId(idx)].execute(task);
     }
 
+    /** */
+    public Future<?> submit(Runnable task, int idx) {
+        return execs[threadId(idx)].submit(task);
+    }
+
     /**
      * @param idx Index.
      * @return Stripped thread ID.

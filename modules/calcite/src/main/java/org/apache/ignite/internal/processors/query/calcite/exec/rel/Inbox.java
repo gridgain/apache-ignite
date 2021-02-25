@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal.processors.query.calcite.exec.rel;
 
+import java.nio.Buffer;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import org.apache.calcite.util.Pair;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
 import org.apache.ignite.internal.processors.query.calcite.exec.ExchangeService;
+import org.apache.ignite.internal.processors.query.calcite.exec.ExecutionCancelledException;
 import org.apache.ignite.internal.processors.query.calcite.exec.ExecutionContext;
 import org.apache.ignite.internal.processors.query.calcite.exec.MailboxRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -133,7 +135,8 @@ public class Inbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Singl
         requested = rowsCnt;
 
         if (!inLoop)
-            context().execute(this::doPush, this::onError);
+            doPush();
+            //context().execute(this::doPush, this::onError);
     }
 
     /** {@inheritDoc} */

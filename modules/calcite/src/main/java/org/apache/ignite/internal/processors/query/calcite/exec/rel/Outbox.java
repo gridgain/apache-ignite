@@ -175,7 +175,7 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
 
         // Send cancel message for the Inbox to close Inboxes created by batch message race.
         for (UUID node : dest.targets())
-            getOrCreateBuffer(node).close();
+            getBuffer(node).close();
     }
 
     /** {@inheritDoc} */
@@ -209,7 +209,7 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
     /** */
     private void sendInboxClose(UUID nodeId) {
         try {
-            exchange.closeInbox(nodeId, queryId(), targetFragmentId, exchangeId);
+            exchange.closeInbox(nodeId, queryId(), -1, -1);
         }
         catch (IgniteCheckedException e) {
             U.warn(context().planningContext().logger(), "Failed to send cancel message.", e);
@@ -219,6 +219,11 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
     /** */
     private Buffer getOrCreateBuffer(UUID nodeId) {
         return nodeBuffers.computeIfAbsent(nodeId, this::createBuffer);
+    }
+
+    /** */
+    private Buffer getBuffer(UUID nodeId) {
+        return nodeBuffers.get(nodeId);
     }
 
     /** */
@@ -347,7 +352,7 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
 
         /** */
         public void close() {
-            int currBatchId = hwm;
+            sendInboxClose(nodeId);
 
             if (hwm == Integer.MAX_VALUE)
                 return;
@@ -355,9 +360,6 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
             hwm = Integer.MAX_VALUE;
 
             curr = null;
-
-            if (currBatchId >= 0)
-                sendInboxClose(nodeId);
         }
     }
 }

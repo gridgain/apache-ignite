@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import org.apache.calcite.rel.type.RelDataType;
+import org.apache.ignite.internal.processors.query.calcite.exec.ExecutionCancelledException;
 import org.apache.ignite.internal.processors.query.calcite.exec.ExecutionContext;
 import org.apache.ignite.internal.util.typedef.F;
 
@@ -115,7 +116,7 @@ public class SortNode<Row> extends AbstractNode<Row> implements SingleNode<Row>,
 
         inLoop = true;
         try {
-            while (requested > 0 && !rows.isEmpty()) {
+            while (requested > 0 && !rows.isEmpty() && !isClosed()) {
                 checkState();
 
                 requested--;

@@ -18,6 +18,7 @@
 package org.apache.ignite.internal.processors.query.calcite.exec;
 
 import java.util.UUID;
+import java.util.concurrent.Future;
 
 import org.apache.ignite.internal.processors.query.calcite.util.Service;
 
@@ -33,4 +34,7 @@ public interface QueryTaskExecutor extends Service {
      * @param qryTask Query task.
      */
     void execute(UUID qryId, long fragmentId, Runnable qryTask);
+
+    /** */
+    Future<?> submit(UUID qryId, long fragmentId, Runnable qryTask);
 }
