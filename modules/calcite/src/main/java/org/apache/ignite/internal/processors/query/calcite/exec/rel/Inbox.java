@@ -135,7 +135,6 @@ public class Inbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Singl
         requested = rowsCnt;
 
         if (!inLoop)
-            //doPush();
             context().execute(this::doPush, this::onError);
     }
 
@@ -185,13 +184,7 @@ public class Inbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Singl
         if (isClosed())
             return;
 
-        try {
-            checkState();
-        } catch (ExecutionCancelledException e) {
-            System.err.println("!!!doPush " + queryId());
-            System.err.println("!!!doPush " + context());
-            throw e;
-        }
+        checkState();
 
         push();
     }

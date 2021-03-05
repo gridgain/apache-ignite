@@ -1001,7 +1001,7 @@ public class ExecutionServiceImpl<Row> extends AbstractService implements Execut
 
                 if (state == QueryState.RUNNING)
                     state0 = state = QueryState.CLOSING;
-                
+
                 // 1) close local fragment
                 root.closeInternal();
 
