@@ -209,7 +209,7 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
     /** */
     private void sendInboxClose(UUID nodeId) {
         try {
-            exchange.closeInbox(nodeId, queryId(), -1, -1);
+            exchange.closeInbox(nodeId, queryId(), targetFragmentId, exchangeId);
         }
         catch (IgniteCheckedException e) {
             U.warn(context().planningContext().logger(), "Failed to send cancel message.", e);
