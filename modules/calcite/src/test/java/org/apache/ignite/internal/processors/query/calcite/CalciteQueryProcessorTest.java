@@ -73,7 +73,7 @@ public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
         if (!reg) {
             listeningLog.registerListener(lsnr);
             listeningLog.registerListener(lsnr1);
-            reg = true;
+            //reg = true;
             return super.getConfiguration(igniteInstanceName)
                 .setGridLogger(listeningLog);
         }
@@ -159,7 +159,7 @@ public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
             .setCacheMode(CacheMode.REPLICATED)
         );
 
-        int numRiskRows = 65_000;
+        int numRiskRows = 20_000;
 
         Map<Integer, RISK> mRisk = new HashMap<>(numRiskRows);
 

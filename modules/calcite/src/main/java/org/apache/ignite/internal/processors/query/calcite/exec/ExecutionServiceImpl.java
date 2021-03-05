@@ -75,6 +75,7 @@ import org.apache.ignite.internal.processors.query.calcite.exec.rel.RootNode;
 import org.apache.ignite.internal.processors.query.calcite.message.ErrorMessage;
 import org.apache.ignite.internal.processors.query.calcite.message.MessageService;
 import org.apache.ignite.internal.processors.query.calcite.message.MessageType;
+import org.apache.ignite.internal.processors.query.calcite.message.OutboxCloseMessage;
 import org.apache.ignite.internal.processors.query.calcite.message.QueryStartRequest;
 import org.apache.ignite.internal.processors.query.calcite.message.QueryStartResponse;
 import org.apache.ignite.internal.processors.query.calcite.metadata.AffinityService;
@@ -1000,7 +1001,7 @@ public class ExecutionServiceImpl<Row> extends AbstractService implements Execut
 
                 if (state == QueryState.RUNNING)
                     state0 = state = QueryState.CLOSING;
-
+                
                 // 1) close local fragment
                 root.closeInternal();
 
@@ -1027,6 +1028,16 @@ public class ExecutionServiceImpl<Row> extends AbstractService implements Execut
                             wrpEx.addSuppressed(e);
                     }
                 }
+
+                if (!remotes.contains(messageService().localNode())) {
+                    try {
+                        exchangeService().closeOutbox(messageService().localNode(), ctx.queryId(), -1, -1);
+                    }
+                    catch (IgniteCheckedException e) {
+                        U.warn(log, "Failed to send cancel message. [nodeId=" + messageService().localNode() + ']', e);
+                    }
+                }
+
                 // 4) Cancel local fragment
                 ctx.cancel();
 

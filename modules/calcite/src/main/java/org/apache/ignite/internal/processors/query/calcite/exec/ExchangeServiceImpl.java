@@ -31,6 +31,7 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.processors.query.calcite.CalciteQueryProcessor;
+import org.apache.ignite.internal.processors.query.calcite.exec.rel.AbstractNode;
 import org.apache.ignite.internal.processors.query.calcite.exec.rel.Inbox;
 import org.apache.ignite.internal.processors.query.calcite.exec.rel.Outbox;
 import org.apache.ignite.internal.processors.query.calcite.message.ErrorMessage;
@@ -122,8 +123,9 @@ public class ExchangeServiceImpl extends AbstractService implements ExchangeServ
 
     /** {@inheritDoc} */
     @Override public void closeOutbox(UUID nodeId, UUID qryId, long fragmentId, long exchangeId) throws IgniteCheckedException {
-        if (messageService().localNode().equals(nodeId))
+        if (messageService().localNode().equals(nodeId)) {
             onMessage(nodeId, new OutboxCloseMessage(qryId, fragmentId, exchangeId));
+        }
         else
             messageService().send(nodeId, new OutboxCloseMessage(qryId, fragmentId, exchangeId));
     }
@@ -210,6 +212,7 @@ public class ExchangeServiceImpl extends AbstractService implements ExchangeServ
 
         Set<ExecutionContext<?>> ctxs = new HashSet<>();
 
+
         for (Outbox<?> outbox : outboxes) {
             Future<?> fut = outbox.context().submit(outbox::close, outbox::onError);
 
@@ -227,6 +230,13 @@ public class ExchangeServiceImpl extends AbstractService implements ExchangeServ
 
                 U.warn(log, e);
             }
+        }
+
+        try {
+            closeInbox(nodeId, msg.queryId(), msg.fragmentId(), msg.exchangeId());
+        }
+        catch (IgniteCheckedException e) {
+            U.warn(log, "Failed to send cancel message.", e);
         }
 
         ctxs.forEach(ExecutionContext::cancel);
