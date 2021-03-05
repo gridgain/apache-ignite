@@ -352,7 +352,7 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
 
         /** */
         public void close() {
-            sendInboxClose(nodeId);
+            int currBatchId = hwm;
 
             if (hwm == Integer.MAX_VALUE)
                 return;
@@ -360,6 +360,9 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
             hwm = Integer.MAX_VALUE;
 
             curr = null;
+
+            if (currBatchId >= 0)
+                sendInboxClose(nodeId);
         }
     }
 }
