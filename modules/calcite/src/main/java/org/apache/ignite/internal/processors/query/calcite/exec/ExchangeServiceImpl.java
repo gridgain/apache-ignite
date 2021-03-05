@@ -31,7 +31,6 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.processors.query.calcite.CalciteQueryProcessor;
-import org.apache.ignite.internal.processors.query.calcite.exec.rel.AbstractNode;
 import org.apache.ignite.internal.processors.query.calcite.exec.rel.Inbox;
 import org.apache.ignite.internal.processors.query.calcite.exec.rel.Outbox;
 import org.apache.ignite.internal.processors.query.calcite.message.ErrorMessage;
@@ -211,7 +210,6 @@ public class ExchangeServiceImpl extends AbstractService implements ExchangeServ
         List<Future<?>> futs = new ArrayList<>(outboxes.size());
 
         Set<ExecutionContext<?>> ctxs = new HashSet<>();
-
 
         for (Outbox<?> outbox : outboxes) {
             Future<?> fut = outbox.context().submit(outbox::close, outbox::onError);

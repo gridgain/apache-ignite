@@ -181,9 +181,6 @@ public class Inbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Singl
 
     /** */
     private void doPush() throws Exception {
-        if (isClosed())
-            return;
-
         checkState();
 
         push();
