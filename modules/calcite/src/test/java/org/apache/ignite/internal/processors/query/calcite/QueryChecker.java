@@ -38,6 +38,7 @@ import org.hamcrest.core.SubstringMatcher;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -302,38 +303,42 @@ public abstract class QueryChecker {
         List<List<?>> explainRes = explainCursor.getAll();
         String actualPlan = (String)explainRes.get(0).get(0);
 
-        if (!F.isEmpty(planMatchers)) {
-            for (Matcher<String> matcher : planMatchers)
-                assertThat("Invalid plan:\n" + actualPlan, actualPlan, matcher);
-        }
+        System.out.println(actualPlan);
 
-        if (exactPlan != null)
-            assertEquals(exactPlan, actualPlan);
+//        if (!F.isEmpty(planMatchers)) {
+//            for (Matcher<String> matcher : planMatchers)
+//                assertThat("Invalid plan:\n" + actualPlan, actualPlan, matcher);
+//        }
+//
+//        if (exactPlan != null)
+//            assertEquals(exactPlan, actualPlan);
+//
+//        // Check result.
+//        List<FieldsQueryCursor<List<?>>> cursors =
+//            engine.query(null, "PUBLIC", qry, params);
+//
+//        FieldsQueryCursor<List<?>> cur = cursors.get(0);
+//
+//        if (expectedColumnNames != null) {
+//            List<String> colNames = IntStream.range(0, cur.getColumnsCount())
+//                .mapToObj(cur::getFieldName).collect(Collectors.toList());
+//
+//            assertThat("Column names don't match", colNames, equalTo(expectedColumnNames));
+//        }
+//
+//        List<List<?>> res = cur.getAll();
+//
+//        if (expectedResult != null) {
+//            if (!ordered) {
+//                // Avoid arbitrary order.
+//                res.sort(new ListComparator());
+//                expectedResult.sort(new ListComparator());
+//            }
+//
+//            assertEqualsCollections(expectedResult, res);
+//        }
 
-        // Check result.
-        List<FieldsQueryCursor<List<?>>> cursors =
-            engine.query(null, "PUBLIC", qry, params);
-
-        FieldsQueryCursor<List<?>> cur = cursors.get(0);
-
-        if (expectedColumnNames != null) {
-            List<String> colNames = IntStream.range(0, cur.getColumnsCount())
-                .mapToObj(cur::getFieldName).collect(Collectors.toList());
-
-            assertThat("Column names don't match", colNames, equalTo(expectedColumnNames));
-        }
-
-        List<List<?>> res = cur.getAll();
-
-        if (expectedResult != null) {
-            if (!ordered) {
-                // Avoid arbitrary order.
-                res.sort(new ListComparator());
-                expectedResult.sort(new ListComparator());
-            }
-
-            assertEqualsCollections(expectedResult, res);
-        }
+        assertTrue(false);
     }
 
     /** */
