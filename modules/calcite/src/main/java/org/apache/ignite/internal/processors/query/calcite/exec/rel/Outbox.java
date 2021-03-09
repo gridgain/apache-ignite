@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal.processors.query.calcite.exec.rel;
 
+import java.nio.Buffer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import org.apache.ignite.internal.processors.query.calcite.trait.Destination;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.U;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A part of exchange.
@@ -174,8 +176,12 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
         registry.unregister(this);
 
         // Send cancel message for the Inbox to close Inboxes created by batch message race.
-        for (UUID node : dest.targets())
-            getBuffer(node).close();
+        for (UUID node : dest.targets()) {
+            Buffer buf = getBuffer(node);
+
+            if (buf != null)
+                buf.close();
+        }
     }
 
     /** {@inheritDoc} */
@@ -222,7 +228,7 @@ public class Outbox<Row> extends AbstractNode<Row> implements Mailbox<Row>, Sing
     }
 
     /** */
-    private Buffer getBuffer(UUID nodeId) {
+    private @Nullable Buffer getBuffer(UUID nodeId) {
         return nodeBuffers.get(nodeId);
     }
 

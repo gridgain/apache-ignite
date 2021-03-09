@@ -63,20 +63,16 @@ public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
     private static IgniteEx client;
 
     private ListeningTestLogger listeningLog = new ListeningTestLogger(log);
-    static LogListener lsnr = LogListener.matches("Execution is cancelled").build();
-    static LogListener lsnr1 = LogListener.matches(s -> s.contains("NullPointer") || s.contains("AssertionError")).build();
-    boolean reg;
+
+    static LogListener lsnr = LogListener.matches(s ->
+        s.contains("Execution is cancelled") ||
+        s.contains("NullPointer") ||
+        s.contains("AssertionError")).build();
 
     @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
-        if (!reg) {
-            listeningLog.registerListener(lsnr);
-            listeningLog.registerListener(lsnr1);
-            //reg = true;
-            return super.getConfiguration(igniteInstanceName)
-                .setGridLogger(listeningLog);
-        }
-        else
-            return super.getConfiguration(igniteInstanceName);
+        listeningLog.registerListener(lsnr);
+
+        return super.getConfiguration(igniteInstanceName).setGridLogger(listeningLog);
     }
 
     /** {@inheritDoc} */
@@ -157,7 +153,7 @@ public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
             .setCacheMode(CacheMode.REPLICATED)
         );
 
-        int numRiskRows = 20_000;
+        int numRiskRows = 65_000;
 
         Map<Integer, RISK> mRisk = new HashMap<>(numRiskRows);
 
@@ -212,7 +208,8 @@ public class CalciteQueryProcessorTest extends GridCommonAbstractTest {
         }
 
         assertFalse(lsnr.check());
-        assertFalse(lsnr1.check());
+
+        listeningLog.clearListeners();
     }
 
     /**

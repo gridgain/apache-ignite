@@ -49,5 +49,8 @@ public interface MessageService extends Service {
      */
     void register(MessageListener lsnr, MessageType type);
 
+    /**
+     * @return Local node Id.
+     */
     UUID localNode();
 }

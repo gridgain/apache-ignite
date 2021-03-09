@@ -951,7 +951,7 @@ public class ExecutionServiceImpl<Row> extends AbstractService implements Execut
         private final Set<RemoteFragmentKey> waiting;
 
         /** */
-        private QueryState state;
+        private volatile QueryState state;
 
         /** */
         private QueryInfo(ExecutionContext<Row> ctx, MultiStepPlan plan, Node<Row> root) {
@@ -1030,7 +1030,7 @@ public class ExecutionServiceImpl<Row> extends AbstractService implements Execut
 
                 if (!remotes.contains(messageService().localNode())) {
                     try {
-                        exchangeService().closeOutbox(messageService().localNode(), ctx.queryId(), -1, -1);
+                        exchangeService().closeInbox(messageService().localNode(), ctx.queryId(), -1, -1);
                     }
                     catch (IgniteCheckedException e) {
                         U.warn(log, "Failed to send cancel message. [nodeId=" + messageService().localNode() + ']', e);
