@@ -243,7 +243,14 @@ public class ExecutionContext<Row> implements DataContext {
         });
     }
 
-    /** */
+    /**
+     * Submits a Runnable task for execution and returns a Future
+     * representing that task. The Future's {@code get} method will
+     * return {@code null} upon <em>successful</em> completion.
+     *
+     * @param task the task to submit.
+     * @return a Future representing pending task
+     */
     public Future<?> submit(RunnableX task, Consumer<Throwable> onError) {
         return executor.submit(qryId, fragmentId(), () -> {
             try {
@@ -271,6 +278,7 @@ public class ExecutionContext<Row> implements DataContext {
         return !cancelFlag.get() && cancelFlag.compareAndSet(false, true);
     }
 
+    /** */
     public boolean isCancelled() {
         return cancelFlag.get();
     }

@@ -115,7 +115,7 @@ public class RootNode<Row> extends AbstractNode<Row> implements SingleNode<Row>,
     }
 
     /** {@inheritDoc} */
-    @Override protected boolean isClosed() {
+    @Override public boolean isClosed() {
         return closed;
     }
 

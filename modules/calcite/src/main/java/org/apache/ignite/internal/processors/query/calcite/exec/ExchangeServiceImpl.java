@@ -122,9 +122,8 @@ public class ExchangeServiceImpl extends AbstractService implements ExchangeServ
 
     /** {@inheritDoc} */
     @Override public void closeOutbox(UUID nodeId, UUID qryId, long fragmentId, long exchangeId) throws IgniteCheckedException {
-        if (messageService().localNode().equals(nodeId)) {
+        if (messageService().localNode().equals(nodeId))
             onMessage(nodeId, new OutboxCloseMessage(qryId, fragmentId, exchangeId));
-        }
         else
             messageService().send(nodeId, new OutboxCloseMessage(qryId, fragmentId, exchangeId));
     }

@@ -173,7 +173,7 @@ public abstract class AbstractNode<Row> implements Node<Row> {
     /**
      * @return {@code true} if the subtree is canceled.
      */
-    protected boolean isClosed() {
+    public boolean isClosed() {
         return closed;
     }
 

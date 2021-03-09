@@ -35,6 +35,15 @@ public interface QueryTaskExecutor extends Service {
      */
     void execute(UUID qryId, long fragmentId, Runnable qryTask);
 
-    /** */
+    /**
+     * Submits a Runnable task for execution and returns a Future
+     * representing that task. The Future's {@code get} method will
+     * return {@code null} upon <em>successful</em> completion.
+     *
+     * @param qryId query Id.
+     * @param fragmentId  fragment Id.
+     * @param qryTask the task to submit.
+     * @return a Future representing pending task
+     */
     Future<?> submit(UUID qryId, long fragmentId, Runnable qryTask);
 }

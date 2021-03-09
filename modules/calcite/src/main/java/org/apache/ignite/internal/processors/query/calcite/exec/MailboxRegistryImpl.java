@@ -122,6 +122,7 @@ public class MailboxRegistryImpl extends AbstractService implements MailboxRegis
     @Override public Collection<Inbox<?>> inboxes(@Nullable UUID qryId, long fragmentId, long exchangeId) {
         return remotes.values().stream()
             .filter(makeFilter(qryId, fragmentId, exchangeId))
+            .filter(node -> !node.isClosed())
             .collect(Collectors.toList());
     }
 
